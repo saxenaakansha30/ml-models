@@ -1,17 +1,16 @@
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-nltk.data.path.append('/Users/akanksha.saxena/nltk_data')
 
 import re
 import string
 
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import  accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report
 
+nltk.data.path.append('/Users/akanksha.saxena/nltk_data')
 def preprocess_text(text):
     text = text.lower()
     text = re.sub(r'https?://\S+|www\.\S+', '', text)
@@ -28,41 +27,35 @@ def preprocess_text(text):
 tfidf_vectorizer = TfidfVectorizer()
 
 
-# Training:
+# Prepare training data:
 
 # Apply preprocessing.
 df_train = pd.read_csv('data/train.csv')
 df_train['text_clean'] = df_train['text'].apply(preprocess_text)
 
-X = tfidf_vectorizer.fit_transform(df_train['text_clean'])
-y = df_train['target']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-
 # Feature Extraction
-# X_train = tfidf_vectorizer.fit_transform(df_train['text_clean'])
-# y_train = df_train['target']
-
+X_train = tfidf_vectorizer.fit_transform(df_train['text_clean'])
+y_train = df_train['target']
 
 # Prepare test Data.
 
 # Apply preprocessing.
-# df_test = pd.read_csv('data/test.csv')
-# df_test['text_clean'] = df_test['text'].apply(preprocess_text)
-#
-# # Feature Extraction
-# X_test = tfidf_vectorizer.fit_transform(df_test['text_clean'])
-# df_submission = pd.read_csv('data/sample_submission.csv')
-# y_test = df_submission['target']
-#
-# # Model training
+df_test = pd.read_csv('data/test.csv')
+df_test['text_clean'] = df_test['text'].apply(preprocess_text)
+
+# Feature Extraction
+X_test = tfidf_vectorizer.transform(df_test['text_clean'])
+df_submission = pd.read_csv('data/sample_submission.csv')
+y_test = df_submission['target']
+
+# Model training
 model = LogisticRegression()
 model.fit(X_train, y_train)
 
 # Make prediction.
-# predictions = model.predict(X_test)
-# print(f'Accuracy Score: {accuracy_score(y_test, predictions)}')
-# print(classification_report(y_test, predictions))
+predictions = model.predict(X_test)
+print(f'Accuracy Score: {accuracy_score(y_test, predictions)}')
+print(classification_report(y_test, predictions))
 
 
 def predict_disaster_tweet(tweet, vectorizer, model):
